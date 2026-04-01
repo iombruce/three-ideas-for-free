@@ -123,7 +123,8 @@ Return ONLY a single valid JSON object. No markdown. No explanation. No text bef
 
   if (!response.ok) {
     const err = await response.text();
-    return res.status(response.status).json({ error: err });
+    console.log("Anthropic error:", response.status, err);
+    return res.status(500).json({ error: err });
   }
 
   const data = await response.json();
