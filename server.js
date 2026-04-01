@@ -1,10 +1,4 @@
-Great! Now let's do server.js:
-
-Click "Add file" → "Create new file"
-Type server.js as the filename
-Paste this into the text area:
-
-jsimport express from "express";
+import express from "express";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
