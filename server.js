@@ -12,7 +12,7 @@ app.use((req, res, next) => { console.log(req.method, req.path); next(); });
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
-
+console.log("API KEY:", process.env.ANTHROPIC_API_KEY ? "found" : "MISSING");
 app.post("/api/ideas", async (req, res) => {
   const { prompt, max_tokens } = req.body;
   if (!prompt) {
