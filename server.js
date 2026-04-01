@@ -14,6 +14,8 @@ app.get("/", (req, res) => {
 });
 console.log("API KEY:", process.env.ANTHROPIC_API_KEY ? "found" : "MISSING");
 app.post("/api/ideas", async (req, res) => {
+  console.log("API KEY:", process.env.ANTHROPIC_API_KEY ? "found" : "MISSING");
+console.log("Body:", JSON.stringify(req.body));
   const { prompt, max_tokens } = req.body;
   if (!prompt) {
     return res.status(400).json({ error: "prompt is required" });
