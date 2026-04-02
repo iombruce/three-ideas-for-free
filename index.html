@@ -186,7 +186,7 @@ function showBonusResults(b){
   const p=storedP;
   const bonusCards=(b.bonusIdeas||[]).map((idea,i)=>'<div class="bonus-idea-card"><div class="bonus-idea-num">Deeper dive '+(i+1)+'</div><h3>'+(idea.title||"")+'</h3><p class="why">'+(idea.why||"")+'</p>'+stepsBox(idea.steps)+'</div>').join("");
   const reads=(p.reads||[]).map(r=>'<div class="read-row"><strong>'+(r.title||"")+'</strong> — '+(r.why||"")+'</div>').join("");
-  root.innerHTML=progDots(0,true)+'<div class="bonus-header"><div class="bonus-eyebrow">Going deeper on</div><h2>'+topIdea+'</h2><p>3 ways to accelerate this specific idea</p></div>'+bonusCards+'<div class="done-card"><h2>That\'s your full plan.</h2><p>Validate first. Use AI to move faster. Find free money. Get real feedback. Now go.</p></div><div class="monday-card"><div class="monday-eyebrow">Your Monday morning — first steps</div><h2>'+topIdea+'</h2><div class="monday-chosen">When you sit down on Monday, do these:</div>'+(topIdeaSteps||[]).map((s,i)=>'<div class="monday-step-row"><div class="monday-num">'+(i+1)+'</div><div class="monday-step-text">'+s+'</div></div>').join("")+'</div><div class="reads-card"><div class="reads-label">Worth reading — when you have time</div>'+reads+'</div><button class="reset-btn" onclick="doReset()">Start over</button>';
+  root.innerHTML='<div class="done-card"><h2>Something went wrong</h2><p>'+e.message+'</p><button class="reset-btn" onclick="doReset()">Start over</button></div>';
   setTimeout(()=>{root.scrollIntoView({behavior:"smooth",block:"start"});},150);
 }
 
