@@ -157,7 +157,7 @@ function showShowtime(type,callback){const isBon=type==="bonus";root.innerHTML=p
 function buildIdeasPrompt(){const a=ans;return ["You are a direct experienced startup advisor. Return ONLY a single valid JSON object. No markdown. No explanation. No text before or after the JSON.","","Entrepreneur profile:","Working on: "+a.what,"Who pays: "+a.who,"Stage: "+a.stage,"Location: "+(a.location||"not given"),"Skills: "+a.skills,"AI experience: "+a.ai,"Budget: "+a.budget,"","Return a JSON object with exactly these fields:","reinforcement: string","insight: string","ideas: array of exactly 4 objects, each with: type (one of: validate, ai_tool, grant, coaching), title, why, steps (array of 3 strings). The ai_tool idea must also include a prompt field.","antiIdea: object with title and why","reads: array of exactly 3 objects with title and why"].join("\n");}
 
 function buildBonusPrompt(why){const a=ans;return ["Direct startup advisor. Return ONLY a single valid JSON object. No markdown. No explanation.","Chosen idea: "+topIdea,"Why it matters: "+why,"Context: "+a.what+" for "+a.who+", stage: "+a.stage+", skills: "+a.skills+", AI: "+a.ai+", budget: "+a.budget,"Return JSON with: bonusIdeas: array of exactly 3 objects with title, why, steps (array of 3 strings)","Be specific. No generic advice."].join("\n");}
-
+2500
 async function callAPI(prompt,maxTokens){const res=await fetch("/api/ideas",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:prompt,max_tokens:maxTokens})});if(!res.ok)throw new Error("Server error "+res.status);const data=await res.json();const raw=(data.content||data.result||data.text||JSON.stringify(data)).toString().trim();const s=raw.indexOf("{"),e=raw.lastIndexOf("}");if(s===-1||e===-1)throw new Error("No JSON found");return JSON.parse(raw.slice(s,e+1));}
 
 async function genIdeas(){try{const p=await callAPI(buildIdeasPrompt(),2500);storedP=p;showShowtime("ideas",()=>showResults(p));}catch(e){root.innerHTML='<div class="done-card" style="margin-top:2rem"><h2>Something went wrong</h2><p>'+e.message+'</p><br><button class="splash-btn" onclick="doReset()">Try again</button></div>';}}
@@ -180,7 +180,7 @@ function pickForBonus(title,idx){
   setTimeout(()=>{const t=el("why-txt");if(t)t.focus();},80);
 }
 
-async function submitWhy(){const why=(el("why-txt")||{}).value||"";showBonusLoading();try{const b=await callAPI(buildBonusPrompt(why),1500);storedB=b;showShowtime("bonus",()=>showBonusResults(b));}catch(e){root.innerHTML='<div class="done-card"><h2>Something went wrong</h2><p>Your Monday plan above is solid — that is enough to start.</p><button class="reset-btn" onclick="doReset()">Start over</button></div>';}}
+async function submitWhy(){const why=(el("why-txt")||{}).value||"";showBonusLoading();try{const b=await callAPI(buildBonusPrompt(why),2500);storedB=b;showShowtime("bonus",()=>showBonusResults(b));}catch(e){root.innerHTML='<div class="done-card"><h2>Something went wrong</h2><p>Your Monday plan above is solid — that is enough to start.</p><button class="reset-btn" onclick="doReset()">Start over</button></div>';}}
 
 function showBonusResults(b){
   const p=storedP;
