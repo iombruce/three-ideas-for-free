@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Three Ideas for Free</title>
+<title>What do I do on Monday?</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f7f6f2;min-height:100vh;}
@@ -78,6 +78,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .anti-dot{width:8px;height:8px;border-radius:50%;background:#E07060;display:inline-block;flex-shrink:0;}
 .anti-card h3{font-size:0.97rem;font-weight:600;color:#8B2A14;margin-bottom:0.3rem;}
 .anti-card .why{font-size:0.85rem;color:#A0402E;line-height:1.55;}
+.summary-card{background:#fff;border:0.5px solid #e0ddd6;border-radius:12px;padding:0.95rem 1.1rem;margin-bottom:0.7rem;}
+.summary-label{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#888;margin-bottom:0.6rem;}
+.summary-row{display:flex;align-items:baseline;gap:0.5rem;padding:0.3rem 0;border-top:0.5px solid #f0ede8;font-size:0.85rem;line-height:1.5;}
+.summary-row:first-of-type{border-top:none;}
+.summary-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.dot-validate{background:#3730A3;}
+.dot-ai_tool{background:#166534;}
+.dot-grant{background:#92400E;}
+.dot-coaching{background:#6B21A8;}
+.summary-row strong{color:#1a1a1a;font-weight:600;}
+.summary-row span{color:#666;}
+.chosen-card{background:#1D9E75;border-radius:12px;padding:1rem 1.1rem;margin-bottom:0.7rem;}
+.chosen-eyebrow{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.7);margin-bottom:0.3rem;}
+.chosen-card h3{font-size:1rem;font-weight:600;color:#fff;margin-bottom:0.3rem;}
+.chosen-card p{font-size:0.85rem;color:rgba(255,255,255,0.85);line-height:1.55;}
 .bonus-header{background:#D85A30;border-radius:14px;padding:1.4rem;margin-bottom:0.9rem;text-align:center;}
 .bonus-eyebrow{font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.7);margin-bottom:0.4rem;}
 .bonus-header h2{font-size:1.2rem;font-weight:600;color:#fff;margin-bottom:0.3rem;}
@@ -86,6 +101,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .bonus-idea-num{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#D85A30;margin-bottom:0.25rem;}
 .bonus-idea-card h3{font-size:0.97rem;font-weight:600;color:#1a1a1a;margin-bottom:0.3rem;}
 .bonus-idea-card .why{font-size:0.85rem;color:#555;line-height:1.55;margin-bottom:0.6rem;}
+.future-ai-card{background:#0F172A;border-radius:14px;padding:1.3rem 1.4rem;margin-bottom:0.9rem;}
+.future-ai-eyebrow{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#38BDF8;margin-bottom:0.4rem;}
+.future-ai-card h3{font-size:1rem;font-weight:600;color:#fff;margin-bottom:0.4rem;}
+.future-ai-card .why{font-size:0.85rem;color:#94A3B8;line-height:1.6;margin-bottom:0.7rem;}
+.future-ai-step{background:rgba(255,255,255,0.07);border-radius:8px;padding:0.6rem 0.85rem;font-size:0.84rem;color:#E2E8F0;line-height:1.5;}
+.future-ai-step strong{color:#38BDF8;display:block;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.2rem;}
+.future-ai-url{display:inline-block;margin-top:0.6rem;font-size:0.82rem;color:#38BDF8;text-decoration:none;}
+.reads-card{background:#1a1a1a;border-radius:14px;padding:1.3rem 1.4rem;margin-bottom:0.9rem;}
+.reads-label{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#888;margin-bottom:0.7rem;}
+.read-row{padding:0.6rem 0;border-top:0.5px solid #333;line-height:1.5;}
+.read-row:first-of-type{border-top:none;}
+.read-row strong{display:block;font-size:0.9rem;color:#fff;font-weight:600;margin-bottom:0.2rem;}
+.read-row span{font-size:0.83rem;color:#999;}
+.monday-card{background:#1D9E75;border-radius:14px;padding:1.4rem;margin-bottom:0.7rem;}
+.monday-eyebrow{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.65);margin-bottom:0.4rem;}
+.monday-card h2{font-size:1.1rem;font-weight:600;color:#fff;margin-bottom:0.3rem;}
+.monday-chosen{font-size:0.85rem;color:rgba(255,255,255,0.8);margin-bottom:1rem;}
+.monday-step-row{display:flex;gap:0.75rem;align-items:flex-start;margin-bottom:0.55rem;}
+.monday-num{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.2);color:#fff;font-size:0.78rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.monday-step-text{font-size:0.88rem;color:#E1F5EE;line-height:1.5;}
 .rank-card{background:#fff;border:0.5px solid #e0ddd6;border-radius:12px;padding:1rem 1.1rem;margin-bottom:0.7rem;}
 .rank-card p{font-size:0.93rem;font-weight:600;color:#1a1a1a;margin-bottom:0.75rem;}
 .rank-btn{display:block;width:100%;background:#f7f6f2;border:0.5px solid #e0ddd6;border-radius:7px;padding:0.6rem 0.9rem;text-align:left;cursor:pointer;font-size:0.88rem;color:#1a1a1a;margin-bottom:0.4rem;font-family:inherit;}
@@ -96,21 +131,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .why-card textarea:focus{border-color:#1D9E75;}
 .why-submit{margin-top:0.6rem;background:#1D9E75;color:#fff;border:none;border-radius:8px;padding:0.6rem 1.2rem;font-size:0.88rem;font-weight:500;cursor:pointer;font-family:inherit;}
 .why-submit:hover{background:#0F6E56;}
-.reads-card{background:#F8F7F4;border:0.5px solid #e0ddd6;border-radius:12px;padding:0.95rem 1.1rem;margin-bottom:0.7rem;}
-.reads-label{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#888;margin-bottom:0.6rem;}
-.read-row{font-size:0.85rem;color:#555;padding:0.4rem 0;border-top:0.5px solid #e0ddd6;line-height:1.5;}
-.read-row:first-of-type{border-top:none;}
-.read-row strong{color:#1a1a1a;font-weight:600;}
-.done-card{background:#f0f0ee;border-radius:14px;padding:1.4rem;text-align:center;margin-bottom:0.9rem;}
-.done-card h2{font-size:1.1rem;font-weight:600;color:#1a1a1a;margin-bottom:0.4rem;}
-.done-card p{font-size:0.88rem;color:#555;line-height:1.6;}
-.monday-card{background:#1D9E75;border-radius:14px;padding:1.4rem;margin-bottom:0.7rem;}
-.monday-eyebrow{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.65);margin-bottom:0.4rem;}
-.monday-card h2{font-size:1.1rem;font-weight:600;color:#fff;margin-bottom:0.3rem;}
-.monday-chosen{font-size:0.85rem;color:rgba(255,255,255,0.8);margin-bottom:1rem;}
-.monday-step-row{display:flex;gap:0.75rem;align-items:flex-start;margin-bottom:0.55rem;}
-.monday-num{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.2);color:#fff;font-size:0.78rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-.monday-step-text{font-size:0.88rem;color:#E1F5EE;line-height:1.5;}
 .reset-btn{display:block;margin:1rem auto 0;background:none;border:0.5px solid #ccc;border-radius:7px;padding:0.5rem 1.2rem;font-size:0.82rem;color:#888;cursor:pointer;font-family:inherit;}
 .reset-btn:hover{color:#1a1a1a;}
 </style>
@@ -130,8 +150,9 @@ const CHAPTERS=[
 
 const IDEA_LABELS={validate:"Validate your idea",ai_tool:"Your AI tool",grant:"Free money",coaching:"Get real feedback"};
 const IDEA_BADGE={validate:"badge-validate",ai_tool:"badge-ai_tool",grant:"badge-grant",coaching:"badge-coaching"};
+const IDEA_DOT={validate:"dot-validate",ai_tool:"dot-ai_tool",grant:"dot-grant",coaching:"dot-coaching"};
 
-let qStep=0,ans={},storedP=null,storedB=null,topIdea="",topIdeaSteps=[],selectedChips=[];
+let qStep=0,ans={},storedP=null,storedB=null,topIdea="",topIdeaWhy="",topIdeaSteps=[],topIdeaIdx=0,selectedChips=[];
 const root=document.getElementById("root");
 function el(id){return document.getElementById(id);}
 function esc(s){return(s||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'");}
@@ -151,16 +172,16 @@ function loaderHTML(title,sub,msgs,cls){return progDots(0,true)+'<div class="loa
 function animateLoader(msgs,onComplete){let i=0;let done=false;const iv=setInterval(()=>{if(!el("lbar")){clearInterval(iv);return;}msgs.forEach((_,j)=>{const d=el("ls"+j);if(d)d.classList.remove("active-step");});const d=el("ls"+i);if(d)d.classList.add("active-step");const b=el("lbar");if(b)b.style.width=((i+1)/msgs.length*90)+"%";i++;if(i>=msgs.length&&!done){done=true;clearInterval(iv);if(onComplete)setTimeout(onComplete,600);}},900);}
 
 function showIdeasLoading(){const msgs=["Reading your answers...","Mapping your situation...","Finding your grant...","Building your Monday plan..."];root.innerHTML=loaderHTML("Working on your plan","This takes a few seconds — being specific, not generic.",msgs,"ideas-loading");animateLoader(msgs);}
-function showBonusLoading(){const msgs=["Locking in on your chosen idea...","Finding the fastest shortcuts...","Building your bonus steps...","Almost ready..."];root.innerHTML=loaderHTML("Going deeper","Based on your pick: <strong style='color:#fff'>"+topIdea+"</strong>",msgs,"bonus-loading");animateLoader(msgs);}
+function showBonusLoading(){const msgs=["Locking in on your chosen idea...","Finding the fastest shortcuts...","Picking your next AI tool...","Almost ready..."];root.innerHTML=loaderHTML("Going deeper","Based on your pick: <strong style='color:#fff'>"+topIdea+"</strong>",msgs,"bonus-loading");animateLoader(msgs);}
 function showShowtime(type,callback){const isBon=type==="bonus";root.innerHTML=progDots(0,true)+'<div class="showtime-screen '+(isBon?"bonus-show":"ideas-show")+'"><div class="showtime-title">Your plan is ready.</div><div class="showtime-sub">'+(isBon?"Here\'s how to go deeper.":"Here\'s what to do on Monday.")+'</div></div>';setTimeout(callback,1800);}
 
-function buildIdeasPrompt(){const a=ans;return ["You are a direct experienced startup advisor. Return ONLY a single valid JSON object. No markdown. No explanation. No text before or after the JSON.","","Entrepreneur profile:","Working on: "+a.what,"Who pays: "+a.who,"Stage: "+a.stage,"Location: "+(a.location||"not given"),"Skills: "+a.skills,"AI experience: "+a.ai,"Budget: "+a.budget,"","Return a JSON object with exactly these fields:","reinforcement: string","insight: string","ideas: array of exactly 4 objects, each with: type (one of: validate, ai_tool, grant, coaching), title, why, steps (array of 3 strings). The ai_tool idea must also include a prompt field.","antiIdea: object with title and why","reads: array of exactly 3 objects with title and why"].join("\n");}
+function buildIdeasPrompt(){const a=ans;return ["You are a direct experienced startup advisor. Return ONLY a single valid JSON object. No markdown. No explanation. No text before or after the JSON.","","Entrepreneur profile:","Working on: "+a.what,"Who pays: "+a.who,"Stage: "+a.stage,"Location: "+(a.location||"not given"),"Skills: "+a.skills,"AI experience: "+a.ai,"Budget: "+a.budget,"","Return a JSON object with exactly these fields:","reinforcement: string","insight: string","ideas: array of exactly 4 objects in this order: validate, ai_tool, grant, coaching. Each has: type, title, why, steps (array of 3 strings). The ai_tool object also has a prompt field.","antiIdea: object with title and why","reads: array of exactly 3 objects with title and why"].join("\n");}
 
-function buildBonusPrompt(why){const a=ans;return ["Direct startup advisor. Return ONLY a single valid JSON object. No markdown. No explanation.","Chosen idea: "+topIdea,"Why it matters: "+why,"Context: "+a.what+" for "+a.who+", stage: "+a.stage+", skills: "+a.skills+", AI: "+a.ai+", budget: "+a.budget,"Return JSON with: bonusIdeas: array of exactly 3 objects with title, why, steps (array of 3 strings)","Be specific. No generic advice."].join("\n");}
+function buildBonusPrompt(why){const a=ans;return ["You are a direct experienced startup advisor. Return ONLY a single valid JSON object. No markdown. No explanation. No text before or after the JSON.","","Chosen idea: "+topIdea,"Why it matters to them: "+why,"Founder profile: "+a.what+" for "+a.who+", stage: "+a.stage+", location: "+(a.location||"not given")+", skills: "+a.skills+", AI experience: "+a.ai+", budget: "+a.budget,"","Return JSON with exactly:","bonusIdeas: array of exactly 3 objects with title, why, steps (array of 3 strings)","futureAI: object with tool, url, why, firstStep","Be specific. No generic advice."].join("\n");}
 
-async function callAPI(prompt,maxTokens){const res=await fetch("/api/ideas",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:prompt,max_tokens:maxTokens})});if(!res.ok)throw new Error("Server error "+res.status);const data=await res.json();const raw=(data.content||data.result||data.text||JSON.stringify(data)).toString().trim();const s=raw.indexOf("{"),e=raw.lastIndexOf("}");if(s===-1||e===-1)throw new Error("No JSON found");return JSON.parse(raw.slice(s,e+1));}
+async function callAPI(prompt,maxTokens,mode){const res=await fetch("/api/ideas",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt,max_tokens:maxTokens,mode:mode||"ideas"})});if(!res.ok)throw new Error("Server error "+res.status);const data=await res.json();const raw=(data.content||data.result||data.text||JSON.stringify(data)).toString().trim();const s=raw.indexOf("{"),e=raw.lastIndexOf("}");if(s===-1||e===-1)throw new Error("No JSON found");return JSON.parse(raw.slice(s,e+1));}
 
-async function genIdeas(){try{const p=await callAPI(buildIdeasPrompt(),2500);storedP=p;showShowtime("ideas",()=>showResults(p));}catch(err){root.innerHTML='<div class="done-card" style="margin-top:2rem"><h2>Something went wrong</h2><p>'+err.message+'</p><br><button class="splash-btn" onclick="doReset()">Try again</button></div>';}}
+async function genIdeas(){try{const p=await callAPI(buildIdeasPrompt(),2500,"ideas");storedP=p;showShowtime("ideas",()=>showResults(p));}catch(err){root.innerHTML='<div style="margin-top:2rem;background:#fff;border-radius:12px;padding:1.4rem;text-align:center"><h2 style="font-size:1.1rem;color:#1a1a1a;margin-bottom:0.4rem">Something went wrong</h2><p style="font-size:0.88rem;color:#555">'+err.message+'</p><br><button class="splash-btn" onclick="doReset()">Try again</button></div>';}}
 
 function stepsBox(steps){return '<div class="steps-box"><div class="steps-lbl">Monday morning steps</div><ol>'+(steps||[]).map(s=>'<li>'+s+'</li>').join("")+'</ol></div>';}
 
@@ -168,30 +189,56 @@ function ideaCard(idea,i){const type=idea.type||"validate";const label=IDEA_LABE
 
 function showResults(p){
   const ideas=(p.ideas||[]).map((idea,i)=>ideaCard(idea,i)).join("");
-  const rankBtns=(p.ideas||[]).map((idea,i)=>{const type=idea.type||"validate";const label=IDEA_LABELS[type]||"Idea "+(i+1);return '<button class="rank-btn" onclick="pickForBonus(\''+esc(idea.title||"")+'\','+i+')"><strong style="display:block;font-size:0.83rem;margin-bottom:2px">'+label+': '+(idea.title||"")+'</strong></button>';}).join("");
+  const rankBtns=(p.ideas||[]).map((idea,i)=>{const type=idea.type||"validate";const label=IDEA_LABELS[type]||"Idea "+(i+1);return '<button class="rank-btn" onclick="pickForBonus(\''+esc(idea.title||"")+'\',\''+esc(idea.why||"")+'\','+i+')"><strong style="display:block;font-size:0.83rem;margin-bottom:2px">'+label+': '+(idea.title||"")+'</strong></button>';}).join("");
   root.innerHTML=progDots(0,true)+'<div class="insight-card"><div class="insight-label">Your situation</div><div class="insight-reinforce">'+(p.reinforcement||"")+'</div><div class="insight-market">'+(p.insight||"")+'</div></div><div class="section-title">Your Monday morning plan</div>'+ideas+'<div class="anti-card"><div class="anti-lbl"><span class="anti-dot"></span>Don\'t waste time on this right now</div><h3>'+((p.antiIdea||{}).title||"")+'</h3><p class="why">'+((p.antiIdea||{}).why||"")+'</p></div><div class="rank-card" id="rank1"><p>Which is most useful to go deeper on?</p>'+rankBtns+'</div><button class="reset-btn" onclick="doReset()">Start over</button>';
   root.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
-function pickForBonus(title,idx){
+function pickForBonus(title,why,idx){
   topIdea=title;
+  topIdeaWhy=why;
+  topIdeaIdx=idx;
   topIdeaSteps=(storedP.ideas||[])[idx]?.steps||[];
   el("rank1").outerHTML='<div class="why-card" id="why-card"><p>Good pick. Why does this one feel most important right now?</p><textarea id="why-txt" placeholder="A sentence or two is fine..." rows="2"></textarea><br><button class="why-submit" onclick="submitWhy()">Go deeper</button></div>';
   setTimeout(()=>{const t=el("why-txt");if(t)t.focus();},80);
 }
 
-async function submitWhy(){const why=(el("why-txt")||{}).value||"";showBonusLoading();try{const b=await callAPI(buildBonusPrompt(why),2500);storedB=b;showShowtime("bonus",()=>showBonusResults(b));}catch(err){root.innerHTML='<div class="done-card"><h2>Something went wrong</h2><p>'+err.message+'</p><button class="reset-btn" onclick="doReset()">Start over</button></div>';}}
+async function submitWhy(){
+  const why=(el("why-txt")||{}).value||"";
+  showBonusLoading();
+  try{
+    const b=await callAPI(buildBonusPrompt(why),2500,"bonus");
+    storedB=b;
+    showShowtime("bonus",()=>showBonusResults(b));
+  }catch(err){
+    root.innerHTML='<div style="background:#fff;border-radius:12px;padding:1.4rem;text-align:center"><h2 style="font-size:1.1rem;color:#1a1a1a;margin-bottom:0.4rem">Something went wrong</h2><p style="font-size:0.88rem;color:#555">'+err.message+'</p><button class="reset-btn" onclick="doReset()">Start over</button></div>';
+  }
+}
 
 function showBonusResults(b){
   const p=storedP;
+  const summaryRows=(p.ideas||[]).map(idea=>{const type=idea.type||"validate";const label=IDEA_LABELS[type]||type;const dot=IDEA_DOT[type]||"dot-validate";return '<div class="summary-row"><span class="summary-dot '+dot+'"></span><div><strong>'+label+':</strong> <span>'+(idea.title||"")+'</span></div></div>';}).join("");
+  const chosenIdea=(p.ideas||[])[topIdeaIdx]||{};
+  const chosenLabel=IDEA_LABELS[chosenIdea.type||"validate"]||"Your pick";
   const bonusCards=(b.bonusIdeas||[]).map((idea,i)=>'<div class="bonus-idea-card"><div class="bonus-idea-num">Deeper dive '+(i+1)+'</div><h3>'+(idea.title||"")+'</h3><p class="why">'+(idea.why||"")+'</p>'+stepsBox(idea.steps)+'</div>').join("");
-  const reads=(p.reads||[]).map(r=>'<div class="read-row"><strong>'+(r.title||"")+'</strong> — '+(r.why||"")+'</div>').join("");
-  root.innerHTML=progDots(0,true)+'<div class="bonus-header"><div class="bonus-eyebrow">Going deeper on</div><h2>'+topIdea+'</h2><p>3 ways to accelerate this specific idea</p></div>'+bonusCards+'<div class="done-card"><h2>That\'s your full plan.</h2><p>Validate first. Use AI to move faster. Find free money. Get real feedback. Now go.</p></div><div class="monday-card"><div class="monday-eyebrow">Your Monday morning — first steps</div><h2>'+topIdea+'</h2><div class="monday-chosen">When you sit down on Monday, do these:</div>'+(topIdeaSteps||[]).map((s,i)=>'<div class="monday-step-row"><div class="monday-num">'+(i+1)+'</div><div class="monday-step-text">'+s+'</div></div>').join("")+'</div><div class="reads-card"><div class="reads-label">Worth reading — when you have time</div>'+reads+'</div><button class="reset-btn" onclick="doReset()">Start over</button>';
+  const f=b.futureAI||{};
+  const futureAIHTML=f.tool?'<div class="future-ai-card"><div class="future-ai-eyebrow">Start learning this next month</div><h3>'+f.tool+'</h3><p class="why">'+f.why+'</p><div class="future-ai-step"><strong>Your first step</strong>'+f.firstStep+'</div>'+(f.url?'<a class="future-ai-url" href="'+f.url+'" target="_blank">→ '+f.url+'</a>':'')+'</div>':"";
+  const reads=(p.reads||[]).map(r=>'<div class="read-row"><strong>'+(r.title||"")+'</strong><span>'+(r.why||"")+'</span></div>').join("");
+  const mondaySteps=(topIdeaSteps||[]).map((s,i)=>'<div class="monday-step-row"><div class="monday-num">'+(i+1)+'</div><div class="monday-step-text">'+s+'</div></div>').join("");
+  root.innerHTML=progDots(0,true)+
+    '<div class="summary-card"><div class="summary-label">Your full Monday plan at a glance</div>'+summaryRows+'</div>'+
+    '<div class="chosen-card"><div class="chosen-eyebrow">You chose to go deeper on: '+chosenLabel+'</div><h3>'+topIdea+'</h3><p>'+(chosenIdea.why||"")+'</p></div>'+
+    '<div class="section-title">Going deeper — 3 ways to accelerate this</div>'+
+    bonusCards+
+    '<div class="monday-card"><div class="monday-eyebrow">Your Monday morning — first steps</div><h2>'+topIdea+'</h2><div class="monday-chosen">When you sit down on Monday, do these:</div>'+mondaySteps+'</div>'+
+    futureAIHTML+
+    '<div class="reads-card"><div class="reads-label">📚 Worth reading — when you have time</div>'+reads+'</div>'+
+    '<button class="reset-btn" onclick="doReset()">Start over</button>';
   setTimeout(()=>{root.scrollIntoView({behavior:"smooth",block:"start"});},150);
 }
 
-function startFlow(){qStep=0;ans={};storedP=null;storedB=null;topIdea="";topIdeaSteps=[];selectedChips=[];window._finalItems=null;showChapter(0);}
-function doReset(){qStep=0;ans={};storedP=null;storedB=null;topIdea="";topIdeaSteps=[];selectedChips=[];window._finalItems=null;showSplash();}
+function startFlow(){qStep=0;ans={};storedP=null;storedB=null;topIdea="";topIdeaWhy="";topIdeaSteps=[];topIdeaIdx=0;selectedChips=[];showChapter(0);}
+function doReset(){qStep=0;ans={};storedP=null;storedB=null;topIdea="";topIdeaWhy="";topIdeaSteps=[];topIdeaIdx=0;selectedChips=[];showSplash();}
 showSplash();
 </script>
 </body>
