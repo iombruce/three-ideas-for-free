@@ -1,4 +1,4 @@
-import express from "express";
+javascriptimport express from "express";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
@@ -13,6 +13,59 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
+// ─────────────────────────────────────────────
+// HELPER: Make a single non-streaming API call
+// Used for Chain Step 1 (the analysis call)
+// ─────────────────────────────────────────────
+async function callClaude(apiKey, systemPrompt, userMessage, maxTokens = 500) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: maxTokens,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userMessage }],
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Anthropic error: ${errText}`);
+  }
+
+  const data = await response.json();
+  return data.content?.[0]?.text ?? "";
+}
+
+// ─────────────────────────────────────────────
+// CHAIN STEP 1 PROMPT
+// This call is invisible to the user.
+// It analyses the founder and produces a short
+// structured summary that makes Step 2 smarter.
+// ─────────────────────────────────────────────
+const ANALYSIS_PROMPT = `You are a sharp startup analyst. Your job is NOT to give advice yet.
+Your ONLY job is to deeply understand this founder's situation and produce a concise analysis.
+
+Read what they've told you and return a short JSON object with exactly these fields:
+{
+  "realSkillLevel": "string — honest assessment: complete beginner / some digital skills / technical",
+  "biggestRisk": "string — the single most likely reason this fails in 90 days",
+  "hiddenStrength": "string — one underrated asset or advantage they haven't fully mentioned",
+  "mostUrgentThing": "string — the single most important thing they need to do in the next 7 days",
+  "locationContext": "string — any specific opportunities or constraints their location creates",
+  "emotionalState": "string — are they excited/anxious/overwhelmed/confident? This affects how to communicate with them"
+}
+
+Return ONLY valid JSON. No markdown. No explanation.`;
+
+// ─────────────────────────────────────────────
+// MAIN IDEAS ENDPOINT — now with chaining + streaming
+// ─────────────────────────────────────────────
 app.post("/api/ideas", async (req, res) => {
   console.log("--- /api/ideas called ---");
 
@@ -26,8 +79,32 @@ app.post("/api/ideas", async (req, res) => {
     return res.status(400).json({ error: "prompt is required" });
   }
 
-  const systemPrompt = mode === "bonus"
-    ? `You are a direct, experienced startup advisor. Return ONLY a single valid JSON object. No markdown. No explanation. No text before or after the JSON.
+  try {
+    // ── CHAIN STEP 1 ──────────────────────────
+    // Only do the analysis step for the main mode (not bonus).
+    // The bonus call already has context from the frontend.
+    let founderAnalysis = "";
+    if (mode !== "bonus") {
+      console.log("Chain Step 1: Analysing founder...");
+      try {
+        founderAnalysis = await callClaude(apiKey, ANALYSIS_PROMPT, prompt, 400);
+        console.log("Analysis complete:", founderAnalysis.slice(0, 100));
+      } catch (err) {
+        // If Step 1 fails, we just continue without it — don't crash
+        console.log("Analysis step failed (continuing without it):", err.message);
+        founderAnalysis = "";
+      }
+    }
+
+    // ── CHAIN STEP 2 ──────────────────────────
+    // Build the enriched user message that includes the Step 1 analysis
+    const enrichedPrompt = founderAnalysis
+      ? `FOUNDER ANALYSIS (use this to sharpen your advice — do not mention it directly):\n${founderAnalysis}\n\nFOUNDER'S OWN WORDS:\n${prompt}`
+      : prompt;
+
+    // ── SYSTEM PROMPTS (unchanged from your original) ──
+    const systemPrompt = mode === "bonus"
+      ? `You are a direct, experienced startup advisor. Return ONLY a single valid JSON object. No markdown. No explanation. No text before or after the JSON.
 
 The founder has already received their 4 Monday morning ideas (Validate, AI Tool, Grant, Coaching). They have chosen one to go deeper on. Your job is to:
 
@@ -54,7 +131,7 @@ Return JSON with exactly:
     "firstStep": "string — one specific thing to try first, with enough detail they can do it in 10 minutes"
   }
 }`
-    : `You are a direct, experienced startup advisor with 30 years of hands-on experience helping bootstrapped founders go from zero to their first 100 customers. You are also an enthusiastic AI champion — you believe AI is the great equaliser and your job is to prove it is easier than people think.
+      : `You are a direct, experienced startup advisor with 30 years of hands-on experience helping bootstrapped founders go from zero to their first 100 customers. You are also an enthusiastic AI champion — you believe AI is the great equaliser and your job is to prove it is easier than people think.
 
 Your tone is: warm, direct, no-nonsense, encouraging. You give specific actionable advice — never generic. You always reference what the person actually told you. You never use jargon.
 
@@ -115,8 +192,14 @@ Return ONLY a single valid JSON object:
   ]
 }`;
 
-  try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    // ── STEP 2: STREAMING CALL ─────────────────
+    console.log("Chain Step 2: Generating ideas (streaming)...");
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    const streamResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -127,26 +210,59 @@ Return ONLY a single valid JSON object:
         model: "claude-sonnet-4-6",
         max_tokens: Math.min(max_tokens || 2500, 2500),
         system: systemPrompt,
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content: enrichedPrompt }],
+        stream: true,
       }),
     });
 
-    console.log("Anthropic status:", response.status);
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.log("Anthropic error:", errText);
-      return res.status(500).json({ error: errText });
+    if (!streamResponse.ok) {
+      const errText = await streamResponse.text();
+      console.log("Anthropic stream error:", errText);
+      res.write(`event: error\ndata: ${JSON.stringify({ error: errText })}\n\n`);
+      return res.end();
     }
 
-    const data = await response.json();
-    const content = data.content?.[0]?.text ?? "";
-    console.log("Success, content length:", content.length);
-    res.json({ content });
+    const reader = streamResponse.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const data = line.slice(6).trim();
+        if (data === "[DONE]") continue;
+
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.type === "content_block_delta" && parsed.delta?.type === "text_delta") {
+            res.write(`data: ${JSON.stringify({ text: parsed.delta.text })}\n\n`);
+          }
+          if (parsed.type === "message_stop") {
+            res.write(`event: done\ndata: {}\n\n`);
+          }
+        } catch {
+          // Ignore malformed chunks
+        }
+      }
+    }
+
+    console.log("Stream complete.");
+    res.end();
 
   } catch (err) {
-    console.log("Fetch error:", err.message);
-    return res.status(500).json({ error: err.message });
+    console.log("Error:", err.message);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.write(`event: error\ndata: ${JSON.stringify({ error: err.message })}\n\n`);
+    res.end();
   }
 });
 
