@@ -1,4 +1,277 @@
-<!DOCTYPE html>
+import express from "express";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const app = express();
+const PORT = process.env.PORT || 10000;
+
+app.use(express.json());
+app.use(express.static(__dirname));
+
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
+});
+
+// ─────────────────────────────────────────────
+// HELPER: Make a single non-streaming API call
+// Used for Chain Step 1 (the analysis call)
+// ─────────────────────────────────────────────
+async function callClaude(apiKey, systemPrompt, userMessage, maxTokens = 500) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: maxTokens,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userMessage }],
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Anthropic error: ${errText}`);
+  }
+
+  const data = await response.json();
+  return data.content?.[0]?.text ?? "";
+}
+
+// ─────────────────────────────────────────────
+// CHAIN STEP 1 PROMPT
+// This call is invisible to the user.
+// It analyses the founder and produces a short
+// structured summary that makes Step 2 smarter.
+// ─────────────────────────────────────────────
+const ANALYSIS_PROMPT = `You are a sharp startup analyst. Your job is NOT to give advice yet.
+Your ONLY job is to deeply understand this founder's situation and produce a concise analysis.
+
+Read what they've told you and return a short JSON object with exactly these fields:
+{
+  "realSkillLevel": "string — honest assessment: complete beginner / some digital skills / technical",
+  "biggestRisk": "string — the single most likely reason this fails in 90 days",
+  "hiddenStrength": "string — one underrated asset or advantage they haven't fully mentioned",
+  "mostUrgentThing": "string — the single most important thing they need to do in the next 7 days",
+  "locationContext": "string — any specific opportunities or constraints their location creates",
+  "emotionalState": "string — are they excited/anxious/overwhelmed/confident? This affects how to communicate with them"
+}
+
+Return ONLY valid JSON. No markdown. No explanation.`;
+
+// ─────────────────────────────────────────────
+// MAIN IDEAS ENDPOINT — now with chaining + streaming
+// ─────────────────────────────────────────────
+app.post("/api/ideas", async (req, res) => {
+  console.log("--- /api/ideas called ---");
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: "No API key configured" });
+  }
+
+  const { prompt, max_tokens, mode } = req.body;
+  if (!prompt) {
+    return res.status(400).json({ error: "prompt is required" });
+  }
+
+  try {
+    // ── CHAIN STEP 1 ──────────────────────────
+    // Only do the analysis step for the main mode (not bonus).
+    // The bonus call already has context from the frontend.
+    let founderAnalysis = "";
+    if (mode !== "bonus") {
+      console.log("Chain Step 1: Analysing founder...");
+      try {
+        founderAnalysis = await callClaude(apiKey, ANALYSIS_PROMPT, prompt, 400);
+        console.log("Analysis complete:", founderAnalysis.slice(0, 100));
+      } catch (err) {
+        // If Step 1 fails, we just continue without it — don't crash
+        console.log("Analysis step failed (continuing without it):", err.message);
+        founderAnalysis = "";
+      }
+    }
+
+    // ── CHAIN STEP 2 ──────────────────────────
+    // Build the enriched user message that includes the Step 1 analysis
+    const enrichedPrompt = founderAnalysis
+      ? `FOUNDER ANALYSIS (use this to sharpen your advice — do not mention it directly):\n${founderAnalysis}\n\nFOUNDER'S OWN WORDS:\n${prompt}`
+      : prompt;
+
+    // ── SYSTEM PROMPTS (unchanged from your original) ──
+    const systemPrompt = mode === "bonus"
+      ? `You are a direct, experienced startup advisor. Return ONLY a single valid JSON object. No markdown. No explanation. No text before or after the JSON.
+
+The founder has already received their 4 Monday morning ideas (Validate, AI Tool, Grant, Coaching). They have chosen one to go deeper on. Your job is to:
+
+1. Give 3 specific bonus ideas that go deeper on their chosen idea. Each must be something they can do this week. Be specific to what they told you — no generic advice.
+
+2. Suggest ONE future AI tool they should start learning about in the next month. This must be:
+- A step up from whatever AI tool they are using today
+- Specifically relevant to their idea and where they will be in 4 weeks (past validation, starting to build or market)
+- Simple enough to learn in a weekend
+- Free or cheap
+- Include: tool name, URL, exactly why it fits their specific idea, and one specific thing to try first
+
+Return JSON with exactly:
+{
+  "bonusIdeas": [
+    { "title": "string", "why": "string", "steps": ["string", "string", "string"] },
+    { "title": "string", "why": "string", "steps": ["string", "string", "string"] },
+    { "title": "string", "why": "string", "steps": ["string", "string", "string"] }
+  ],
+  "futureAI": {
+    "tool": "string — tool name",
+    "url": "string — tool URL",
+    "why": "string — exactly why this tool for exactly their idea in 4 weeks",
+    "firstStep": "string — one specific thing to try first, with enough detail they can do it in 10 minutes"
+  }
+}`
+      : `You are a direct, experienced startup advisor with 30 years of hands-on experience helping bootstrapped founders go from zero to their first 100 customers. You are also an enthusiastic AI champion — you believe AI is the great equaliser and your job is to prove it is easier than people think.
+
+Your tone is: warm, direct, no-nonsense, encouraging. You give specific actionable advice — never generic. You always reference what the person actually told you. You never use jargon.
+
+YOUR ONLY JOB IS TO ANSWER: WHAT DO I DO ON MONDAY MORNING?
+Every idea must be something the founder can start within 48 hours. No theory. No strategy documents. Give them the first physical action they take when they sit down on Monday.
+
+THE 4 IDEAS YOU ALWAYS GIVE — IN THIS EXACT ORDER:
+
+IDEA 1 — VALIDATE (type: "validate"):
+Help them design a specific validation conversation they can have this week with real humans.
+- Exactly who to call or message (specific type of person, where to find them)
+- Exactly what to ask (use The Mom Test — ask about their life and current behaviour, never "would you use this?")
+- What a positive signal looks like vs a polite non-answer
+- A specific script or opening message they can send today
+Never skip this. Validation always comes first.
+
+IDEA 2 — AI TOOL (type: "ai_tool"):
+Select ONE specific AI tool matched to their exact stage, skill level, and next task.
+- Free or very cheap, simple enough to get value from in one sitting
+- Give exact tool name, why it fits them specifically, and an exact prompt they can copy and try immediately
+- Learning path: one thing in first 10 minutes, one thing in first hour
+- End steps with: "This takes 5 minutes. Seriously."
+Match to skill level: beginners get Claude.ai or ChatGPT with simple prompts. Never suggest tools requiring coding for beginners.
+
+IDEA 3 — GRANT (type: "grant"):
+A real specific grant matched to their location, stage, and sector.
+- Exact grant name, who runs it, why they qualify
+- Most important action this week to move the application forward
+- If unsure of specific grant, suggest the best grant-finding resource for their location
+
+IDEA 4 — COACHING (type: "coaching"):
+Real humans who will give honest, direct feedback — not cheerleading.
+- Specific community, programme, or forum matched to their location and stage
+- Free or nearly free
+- Specific action to take this week to get in front of those humans
+
+RULES:
+- Never suggest paid ads before 10 paying customers
+- Never suggest specific pricing unless founder has validated with customers
+- Always lead with validation before product or marketing
+- Reading list comes last — only 3 books, matched to their specific situation
+
+Return ONLY a single valid JSON object:
+{
+  "reinforcement": "string",
+  "insight": "string",
+  "ideas": [
+    { "type": "validate", "title": "string", "why": "string", "steps": ["string","string","string"] },
+    { "type": "ai_tool", "title": "string", "why": "string", "steps": ["string","string","string"], "prompt": "string" },
+    { "type": "grant", "title": "string", "why": "string", "steps": ["string","string","string"] },
+    { "type": "coaching", "title": "string", "why": "string", "steps": ["string","string","string"] }
+  ],
+  "antiIdea": { "title": "string", "why": "string" },
+  "reads": [
+    { "title": "string", "why": "string" },
+    { "title": "string", "why": "string" },
+    { "title": "string", "why": "string" }
+  ]
+}`;
+
+    // ── STEP 2: STREAMING CALL ─────────────────
+    console.log("Chain Step 2: Generating ideas (streaming)...");
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    const streamResponse = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: Math.min(max_tokens || 2500, 2500),
+        system: systemPrompt,
+        messages: [{ role: "user", content: enrichedPrompt }],
+        stream: true,
+      }),
+    });
+
+    if (!streamResponse.ok) {
+      const errText = await streamResponse.text();
+      console.log("Anthropic stream error:", errText);
+      res.write(`event: error\ndata: ${JSON.stringify({ error: errText })}\n\n`);
+      return res.end();
+    }
+
+    const reader = streamResponse.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const data = line.slice(6).trim();
+        if (data === "[DONE]") continue;
+
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.type === "content_block_delta" && parsed.delta?.type === "text_delta") {
+            res.write(`data: ${JSON.stringify({ text: parsed.delta.text })}\n\n`);
+          }
+          if (parsed.type === "message_stop") {
+            res.write(`event: done\ndata: {}\n\n`);
+          }
+        } catch {
+          // Ignore malformed chunks
+        }
+      }
+    }
+
+    console.log("Stream complete.");
+    res.end();
+
+  } catch (err) {
+    console.log("Error:", err.message);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.write(`event: error\ndata: ${JSON.stringify({ error: err.message })}\n\n`);
+    res.end();
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+INDEX.HTML — select everything between the triple backticks:
+html<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -48,6 +321,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @keyframes pdot{0%,100%{transform:scale(1);}50%{transform:scale(1.5);}}
 .loading-bar-track{height:4px;background:rgba(255,255,255,0.2);border-radius:2px;max-width:320px;margin:0 auto;overflow:hidden;}
 .loading-bar-fill{height:100%;background:#fff;border-radius:2px;width:0%;transition:width 0.7s ease;}
+.loading-phase{font-size:0.8rem;color:rgba(255,255,255,0.7);margin-top:0.75rem;min-height:1.2em;transition:opacity 0.3s;}
 .showtime-screen{border-radius:16px;padding:3rem 1.5rem;text-align:center;margin-bottom:1rem;}
 .ideas-show{background:#1D9E75;}
 .bonus-show{background:#D85A30;}
@@ -168,8 +442,12 @@ function submitQ(){const c=CHAPTERS[qStep];if(c.type==="text"){const t=el("ans")
 function skipQ(){ans[CHAPTERS[qStep].key]="not provided";next();}
 function next(){qStep++;if(qStep<CHAPTERS.length){showChapter(qStep);}else{showIdeasLoading();genIdeas();}}
 
-function loaderHTML(title,sub,msgs,cls){return progDots(0,true)+'<div class="loading-screen '+cls+'"><div class="loading-title">'+title+'</div><div class="loading-sub">'+sub+'</div><div class="loading-steps">'+msgs.map((m,i)=>'<div class="loading-step" id="ls'+i+'"><span class="step-dot"></span>'+m+'</div>').join("")+'</div><div class="loading-bar-track"><div class="loading-bar-fill" id="lbar"></div></div></div>';}
-function animateLoader(msgs,onComplete){let i=0;let done=false;const iv=setInterval(()=>{if(!el("lbar")){clearInterval(iv);return;}msgs.forEach((_,j)=>{const d=el("ls"+j);if(d)d.classList.remove("active-step");});const d=el("ls"+i);if(d)d.classList.add("active-step");const b=el("lbar");if(b)b.style.width=((i+1)/msgs.length*90)+"%";i++;if(i>=msgs.length&&!done){done=true;clearInterval(iv);if(onComplete)setTimeout(onComplete,600);}},900);}
+function loaderHTML(title,sub,msgs,cls){return progDots(0,true)+'<div class="loading-screen '+cls+'"><div class="loading-title">'+title+'</div><div class="loading-sub">'+sub+'</div><div class="loading-steps">'+msgs.map((m,i)=>'<div class="loading-step" id="ls'+i+'"><span class="step-dot"></span>'+m+'</div>').join("")+'</div><div class="loading-bar-track"><div class="loading-bar-fill" id="lbar"></div></div><div class="loading-phase" id="lphase"></div></div>';}
+
+function animateLoader(msgs){let i=0;const iv=setInterval(()=>{if(!el("lbar")){clearInterval(iv);return;}msgs.forEach((_,j)=>{const d=el("ls"+j);if(d)d.classList.remove("active-step");});const d=el("ls"+i);if(d)d.classList.add("active-step");const b=el("lbar");if(b)b.style.width=((i+1)/msgs.length*85)+"%";i=(i+1)%msgs.length;},1100);return iv;}
+
+function setPhase(text){const p=el("lphase");if(p)p.textContent=text;}
+function finishLoadingBar(){const b=el("lbar");if(b)b.style.width="100%";}
 
 function showIdeasLoading(){const msgs=["Reading your answers...","Mapping your situation...","Finding your grant...","Building your Monday plan..."];root.innerHTML=loaderHTML("Working on your plan","This takes a few seconds — being specific, not generic.",msgs,"ideas-loading");animateLoader(msgs);}
 function showBonusLoading(){const msgs=["Locking in on your chosen idea...","Finding the fastest shortcuts...","Picking your next AI tool...","Almost ready..."];root.innerHTML=loaderHTML("Going deeper","Based on your pick: <strong style='color:#fff'>"+topIdea+"</strong>",msgs,"bonus-loading");animateLoader(msgs);}
@@ -179,7 +457,59 @@ function buildIdeasPrompt(){const a=ans;return ["You are a direct experienced st
 
 function buildBonusPrompt(why){const a=ans;return ["You are a direct experienced startup advisor. Return ONLY a single valid JSON object. No markdown. No explanation. No text before or after the JSON.","","Chosen idea: "+topIdea,"Why it matters to them: "+why,"Founder profile: "+a.what+" for "+a.who+", stage: "+a.stage+", location: "+(a.location||"not given")+", skills: "+a.skills+", AI experience: "+a.ai+", budget: "+a.budget,"","Return JSON with exactly:","bonusIdeas: array of exactly 3 objects with title, why, steps (array of 3 strings)","futureAI: object with tool, url, why, firstStep","Be specific. No generic advice."].join("\n");}
 
-async function callAPI(prompt,maxTokens,mode){const res=await fetch("/api/ideas",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt,max_tokens:maxTokens,mode:mode||"ideas"})});if(!res.ok)throw new Error("Server error "+res.status);const data=await res.json();const raw=(data.content||data.result||data.text||JSON.stringify(data)).toString().trim();const s=raw.indexOf("{"),e=raw.lastIndexOf("}");if(s===-1||e===-1)throw new Error("No JSON found");return JSON.parse(raw.slice(s,e+1));}
+async function callAPI(prompt, maxTokens, mode) {
+  if (mode !== "bonus") setPhase("Analysing your situation...");
+
+  const res = await fetch("/api/ideas", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, max_tokens: maxTokens, mode: mode || "ideas" })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Server error " + res.status }));
+    throw new Error(err.error || "Server error " + res.status);
+  }
+
+  setPhase("Writing your Monday plan...");
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let fullText = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      if (line.startsWith("event: error")) continue;
+      if (line.startsWith("event: done")) { finishLoadingBar(); continue; }
+      if (!line.startsWith("data: ")) continue;
+      const data = line.slice(6).trim();
+      if (!data) continue;
+      try {
+        const parsed = JSON.parse(data);
+        if (parsed.text) fullText += parsed.text;
+        if (parsed.error) throw new Error(parsed.error);
+      } catch (e) {
+        if (e.message && !e.message.includes("JSON")) throw e;
+      }
+    }
+  }
+
+  setPhase("");
+  finishLoadingBar();
+
+  const s = fullText.indexOf("{");
+  const e = fullText.lastIndexOf("}");
+  if (s === -1 || e === -1) throw new Error("No JSON found in response");
+  return JSON.parse(fullText.slice(s, e + 1));
+}
 
 async function genIdeas(){try{const p=await callAPI(buildIdeasPrompt(),2500,"ideas");storedP=p;showShowtime("ideas",()=>showResults(p));}catch(err){root.innerHTML='<div style="margin-top:2rem;background:#fff;border-radius:12px;padding:1.4rem;text-align:center"><h2 style="font-size:1.1rem;color:#1a1a1a;margin-bottom:0.4rem">Something went wrong</h2><p style="font-size:0.88rem;color:#555">'+err.message+'</p><br><button class="splash-btn" onclick="doReset()">Try again</button></div>';}}
 
@@ -195,9 +525,7 @@ function showResults(p){
 }
 
 function pickForBonus(title,why,idx){
-  topIdea=title;
-  topIdeaWhy=why;
-  topIdeaIdx=idx;
+  topIdea=title;topIdeaWhy=why;topIdeaIdx=idx;
   topIdeaSteps=(storedP.ideas||[])[idx]?.steps||[];
   el("rank1").outerHTML='<div class="why-card" id="why-card"><p>Good pick. Why does this one feel most important right now?</p><textarea id="why-txt" placeholder="A sentence or two is fine..." rows="2"></textarea><br><button class="why-submit" onclick="submitWhy()">Go deeper</button></div>';
   setTimeout(()=>{const t=el("why-txt");if(t)t.focus();},80);
