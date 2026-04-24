@@ -1,15 +1,15 @@
-import * as express from "express";
+import express from "express";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-// const app = express();
+const app = express();
 const PORT = process.env.PORT || 10000;
 
-express.use(express.json());
-express.use(express.static(__dirname));
+app.use(express.json());
+app.use(express.static(__dirname));
 
-express.get("/", (req, res) => {
+app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
